@@ -5,6 +5,7 @@ import database as db
 from config_clubes import CLUBES, ROL_JUGADOR_PRIMERA, ROL_JUGADOR_SEGUNDA, ROL_AGENTE_LIBRE
 from utils.embeds import embed_error, embed_exito
 from utils.dt import obtener_club_del_dt
+from utils.canales import solo_canal_fichajes
 
 
 class FichajeView(discord.ui.View):
@@ -128,6 +129,7 @@ class FichajesCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name="fichar")
+    @solo_canal_fichajes()
     async def fichar(self, ctx, jugador: discord.Member):
         """Un DT solicita fichar a un jugador para su propio club. Uso: !fichar @usuario"""
         club, error = obtener_club_del_dt(ctx.author)
@@ -153,7 +155,9 @@ class FichajesCog(commands.Cog):
 
     @fichar.error
     async def fichar_error(self, ctx, error):
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.CheckFailure):
+            pass  # el mensaje ya lo mandó el check de canal
+        elif isinstance(error, commands.MemberNotFound):
             await ctx.send(embed=embed_error("No encontré a ese usuario. Mencionalo con @."))
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(embed=embed_error("Uso correcto: `!fichar @usuario`"))
@@ -164,4 +168,3 @@ class FichajesCog(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(FichajesCog(bot))
-          
