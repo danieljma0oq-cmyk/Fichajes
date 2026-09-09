@@ -4,6 +4,7 @@ from discord.ext import commands
 from config_clubes import ROL_AGENTE_LIBRE
 from utils.embeds import embed_error, embed_exito
 from utils.dt import obtener_club_del_dt
+from utils.canales import solo_canal_bajas
 
 
 class BajasCog(commands.Cog):
@@ -11,6 +12,7 @@ class BajasCog(commands.Cog):
         self.bot = bot
 
     @commands.command(name="baja")
+    @solo_canal_bajas()
     async def baja(self, ctx, jugador: discord.Member):
         """Un DT da de baja a un jugador de su propio club. Uso: !baja @usuario"""
         club, error = obtener_club_del_dt(ctx.author)
@@ -51,7 +53,9 @@ class BajasCog(commands.Cog):
 
     @baja.error
     async def baja_error(self, ctx, error):
-        if isinstance(error, commands.MemberNotFound):
+        if isinstance(error, commands.CheckFailure):
+            pass  # el mensaje ya lo mandó el check de canal
+        elif isinstance(error, commands.MemberNotFound):
             await ctx.send(embed=embed_error("No encontré a ese usuario. Mencionalo con @."))
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(embed=embed_error("Uso correcto: `!baja @usuario`"))
@@ -62,4 +66,3 @@ class BajasCog(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(BajasCog(bot))
-  
